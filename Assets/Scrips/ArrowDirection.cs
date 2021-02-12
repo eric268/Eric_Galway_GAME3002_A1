@@ -7,6 +7,7 @@ public class ArrowDirection : MonoBehaviour
     private float m_fRotationSpeed = 0.05f;
     private float m_fRotationLimit = 0.0f;
     private float m_fKickingStrength = 1.0f;
+    private float m_fDistanceToTarget = 0.0f;
 
     private bool m_bTurnLeft = false;
     private bool m_bTurnRight = false;
@@ -25,6 +26,9 @@ public class ArrowDirection : MonoBehaviour
     private Vector3 m_vInitialVelocity = Vector3.zero;
     private Quaternion m_qStartRotation = Quaternion.identity;
 
+    private Vector3 m_vPosition = Vector3.zero;
+
+    private Vector3 m_vStartVel = Vector3.zero;
 
 
     private GameObject m_soccerBall = null;
@@ -44,12 +48,10 @@ public class ArrowDirection : MonoBehaviour
 
         m_qStartRotation = transform.rotation;
         m_vStartingPosition = transform.position;
-
-        Debug.Log("1: " + m_vInitialVelocity);
-        m_vInitialVelocity += transform.forward * 5;
-        Debug.Log("2: " + m_vInitialVelocity);
-
-        m_LandingPosition.transform.position += m_vInitialVelocity;
+        m_vInitialVelocity += transform.position + transform.forward * 5;
+        m_vInitialVelocity.y = transform.position.y;
+        m_vPosition = m_vInitialVelocity;
+        m_LandingPosition.transform.position = m_vInitialVelocity;
 
     }
 
@@ -58,8 +60,10 @@ public class ArrowDirection : MonoBehaviour
     {
         HandleEvents();
         Move();
-        UpdateTargetPosition();
+        //UpdateTargetPosition();
         RotateCamera();
+        m_LandingPosition.transform.position = m_vInitialVelocity;
+        m_fDistanceToTarget = Vector3.Distance(transform.position, m_LandingPosition.transform.position);
 
     }
     private void HandleEvents()
@@ -123,10 +127,12 @@ public class ArrowDirection : MonoBehaviour
         {
             if (!m_bBallKicked)
             {
-                 m_LandingPosition.transform.position = GetLandingPosition();
+                 //m_LandingPosition.transform.position = GetLandingPosition();
                  m_bBallKicked = true;
-                transform.LookAt(m_LandingPosition.transform.position, Vector3.up);
-                 m_soccerBall.GetComponent<BallPhysics>().m_rb.velocity = m_vInitialVelocity;
+                //transform.LookAt(m_LandingPosition.transform.position, Vector3.up);
+                OnKick();
+                
+                 //m_soccerBall.GetComponent<BallPhysics>().m_rb.velocity = new Vector3(m_vInitialVelocity.x, 5.0f, m_vInitialVelocity.z);
 
             }
         }
@@ -138,21 +144,44 @@ public class ArrowDirection : MonoBehaviour
         }   
 
     }
+    private void OnKick()
+    {
+  
+        float fMaxHeight = (m_LandingPosition.transform.position.y - transform.position.y);
+        float fRange = (m_fDistanceToTarget * 2);
+        float totalXDistance = m_LandingPosition.transform.position.x - transform.position.x;
+        float totalZDistance = m_LandingPosition.transform.position.z - transform.position.z;
+        float fTheta = Mathf.Atan((4 * fMaxHeight) / (fRange));
+        float fInitVelMag = Mathf.Sqrt((2 * Mathf.Abs(Physics.gravity.y) * fMaxHeight)) / Mathf.Sin(fTheta);
+
+        Vector2 xzAxis = new Vector2(totalXDistance, totalZDistance);
+        xzAxis.Normalize();
+
+        m_vStartVel.y = fInitVelMag * Mathf.Sin(fTheta);
+        m_vStartVel.x = xzAxis.x * fInitVelMag;
+        m_vStartVel.z = xzAxis.y * fInitVelMag;
+
+        m_soccerBall.GetComponent<BallPhysics>().m_rb.velocity = m_vStartVel;
+    }
+
     
     private void RotateCamera()
     {
-        Vector3 m_vLandingPosDir = m_LandingPosition.transform.position - transform.position;
-        float angle = Vector3.Angle(m_vLandingPosDir, transform.forward);
+        m_vPosition = m_vInitialVelocity;
+        m_vPosition.y = transform.position.y;
 
+        Vector3 m_vLandingPosDir = m_vPosition - transform.position;
+        float angle = Vector3.Angle(m_vLandingPosDir, transform.forward);
+         
         float dotP = Vector3.Dot(m_vLandingPosDir, transform.right);
-        
+
         if (dotP > 0)
         {
-            transform.Rotate(0, angle, 0);
+            transform.Rotate(0.0f, angle, 0.0f);
         }
         else
         {
-            transform.Rotate(0, -angle, 0);
+            transform.Rotate(0.0f, -angle, 0.0f);
         }
     }
     private void CreateLandingDisplay()
@@ -168,18 +197,17 @@ public class ArrowDirection : MonoBehaviour
     {
         if (m_LandingPosition && !m_bBallKicked)
         {
-            m_LandingPosition.transform.position = GetLandingPosition();
+            //m_LandingPosition.transform.position = GetLandingPosition();
         }
     }
 
     private Vector3 GetLandingPosition()
     {
-        float fTime = 2f * (0f - m_vInitialVelocity.y / Physics.gravity.y);
-        Vector3 vFlatVel = m_vInitialVelocity;
-        vFlatVel.y = 0;
-        vFlatVel *= fTime;
-        Debug.LogError(fTime);
-        return transform.position + vFlatVel;
+        //float fTime = 2f * (0f - m_vInitialVelocity.y / Physics.gravity.y);
+        //Vector3 vFlatVel = m_vInitialVelocity;
+        //vFlatVel.y = 0;
+        //vFlatVel *= fTime;
+        return transform.position; // + vFlatVel;
     }
 
     private void RotateLeft(float speed)
@@ -204,12 +232,18 @@ public class ArrowDirection : MonoBehaviour
     }
     private void RotateUp(float speed)
     {
-
+        m_vInitialVelocity.y += speed;
+        //= new Vector3(m_LandingPosition.transform.position.x, val, m_LandingPosition.transform.position.z);
+        //m_vInitialVelocity += (transform.up * speed);
     }
 
     private void RotateDown(float speed)
     {
-
+        if (m_LandingPosition.transform.position.y > 38.0f)
+        {
+            m_vInitialVelocity.y -= speed;
+        }
+        //m_vInitialVelocity += (transform.up * speed);
     }
 
     private void Move()
@@ -234,20 +268,12 @@ public class ArrowDirection : MonoBehaviour
             }
             if (m_bRotateUp)
             {
-                m_fRotationLimit -= m_fRotationSpeed;
-                m_fRotationLimit = Mathf.Clamp(m_fRotationLimit, -30.0f, 5.0f);
-
-                if (m_fRotationLimit > -30.0f)
-                    RotateUp(m_fRotationSpeed);
+                RotateUp(m_fRotationSpeed);
 
             }
             if (m_bRotateDown)
             {
-                m_fRotationLimit += m_fRotationSpeed;
-                m_fRotationLimit = Mathf.Clamp(m_fRotationLimit, -30.0f, 5.0f);
-
-                if (m_fRotationLimit < 5.0f)
-                    RotateDown(m_fRotationSpeed);
+                RotateDown(m_fRotationSpeed);
             }
         }
 
