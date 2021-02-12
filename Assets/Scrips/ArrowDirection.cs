@@ -49,7 +49,7 @@ public class ArrowDirection : MonoBehaviour
         m_qStartRotation = transform.rotation;
         m_vStartingPosition = transform.position;
         m_vInitialVelocity += transform.position + transform.forward * 5;
-        m_vInitialVelocity.y = transform.position.y;
+        m_vInitialVelocity.y = transform.position.y + 2.0f;
         m_vPosition = m_vInitialVelocity;
         m_LandingPosition.transform.position = m_vInitialVelocity;
 
@@ -63,7 +63,10 @@ public class ArrowDirection : MonoBehaviour
         //UpdateTargetPosition();
         RotateCamera();
         m_LandingPosition.transform.position = m_vInitialVelocity;
-        m_fDistanceToTarget = Vector3.Distance(transform.position, m_LandingPosition.transform.position);
+
+        Vector3 m_vFinalRange = new Vector3(m_LandingPosition.transform.position.x, transform.position.y, m_LandingPosition.transform.position.z);
+
+        m_fDistanceToTarget = Vector3.Distance(transform.position, m_vFinalRange);
 
     }
     private void HandleEvents()
@@ -148,18 +151,30 @@ public class ArrowDirection : MonoBehaviour
     {
   
         float fMaxHeight = (m_LandingPosition.transform.position.y - transform.position.y);
+
         float fRange = (m_fDistanceToTarget * 2);
-        float totalXDistance = m_LandingPosition.transform.position.x - transform.position.x;
-        float totalZDistance = m_LandingPosition.transform.position.z - transform.position.z;
+        float totalXDistance = (m_LandingPosition.transform.position.x - transform.position.x) * 2;
+        float totalZDistance = (m_LandingPosition.transform.position.z - transform.position.z) * 2;
         float fTheta = Mathf.Atan((4 * fMaxHeight) / (fRange));
         float fInitVelMag = Mathf.Sqrt((2 * Mathf.Abs(Physics.gravity.y) * fMaxHeight)) / Mathf.Sin(fTheta);
+
+        //float fInitVelMag = (1.0f / Mathf.Cos(fTheta)) * (Mathf.Sqrt((0.5f * Mathf.Abs(Physics.gravity.y) * (fRange * fRange)) / (fRange * Mathf.Tan(fTheta) + fMaxHeight)));
 
         Vector2 xzAxis = new Vector2(totalXDistance, totalZDistance);
         xzAxis.Normalize();
 
+        //Debug.LogError("Max Height: " + fMaxHeight);
+        //Debug.LogError("Dist to target: " + fRange/2);
+        //Debug.LogError("Total X Dist: " + totalXDistance);
+        //Debug.LogError("Total Z Dist: " + totalZDistance);
+        //Debug.LogError("Angle: " + fTheta * Mathf.Rad2Deg);
+        //Debug.LogError("Magnitude: " + fInitVelMag);
+
+
+
         m_vStartVel.y = fInitVelMag * Mathf.Sin(fTheta);
-        m_vStartVel.x = xzAxis.x * fInitVelMag;
-        m_vStartVel.z = xzAxis.y * fInitVelMag;
+        m_vStartVel.x = xzAxis.x * fInitVelMag * Mathf.Cos(fTheta);
+        m_vStartVel.z = xzAxis.y * fInitVelMag * Mathf.Cos(fTheta);
 
         m_soccerBall.GetComponent<BallPhysics>().m_rb.velocity = m_vStartVel;
     }
@@ -188,27 +203,12 @@ public class ArrowDirection : MonoBehaviour
     {
         m_LandingPosition = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         m_LandingPosition.transform.position = transform.position + (transform.forward *5);
-        m_LandingPosition.transform.localScale = new Vector3(1.0f, 0.1f, 1.0f);
-        m_LandingPosition.GetComponent<Renderer>().material.color = Color.red;
+        m_LandingPosition.transform.localScale = new Vector3(2.5f, 0.1f, 2.5f);
+        m_LandingPosition.transform.Rotate(0.0f, 0.0f, 90.0f);
+        m_LandingPosition.GetComponent<Renderer>().material.color = Color.blue;
         m_LandingPosition.GetComponent<Collider>().enabled = false;
     }
 
-    private void UpdateTargetPosition()
-    {
-        if (m_LandingPosition && !m_bBallKicked)
-        {
-            //m_LandingPosition.transform.position = GetLandingPosition();
-        }
-    }
-
-    private Vector3 GetLandingPosition()
-    {
-        //float fTime = 2f * (0f - m_vInitialVelocity.y / Physics.gravity.y);
-        //Vector3 vFlatVel = m_vInitialVelocity;
-        //vFlatVel.y = 0;
-        //vFlatVel *= fTime;
-        return transform.position; // + vFlatVel;
-    }
 
     private void RotateLeft(float speed)
     {
@@ -239,7 +239,7 @@ public class ArrowDirection : MonoBehaviour
 
     private void RotateDown(float speed)
     {
-        if (m_LandingPosition.transform.position.y > 38.0f)
+        if (m_LandingPosition.transform.position.y > 39.0f)
         {
             m_vInitialVelocity.y -= speed;
         }
@@ -285,6 +285,13 @@ public class ArrowDirection : MonoBehaviour
         m_soccerBall.transform.position = m_vStartingPosition;
         m_soccerBall.GetComponent<BallPhysics>().m_rb.velocity = Vector3.zero;
         m_soccerBall.GetComponent<BallPhysics>().m_rb.angularVelocity = Vector3.zero;
+        m_soccerBall.GetComponent<BallPhysics>().m_bCanHitBullseye = true;
+
+        m_vInitialVelocity = Vector3.zero;
+        m_vInitialVelocity += transform.position + transform.forward * 5;
+        m_vInitialVelocity.y = transform.position.y + 2.0f;
+        m_vPosition = m_vInitialVelocity;
+        m_LandingPosition.transform.position = m_vInitialVelocity;
 
         ResetSceneVariables();
 

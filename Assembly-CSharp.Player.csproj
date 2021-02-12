@@ -59,6 +59,8 @@
     <Compile Include="Assets\Scrips\ArrowDirection.cs" />
     <Compile Include="Assets\Scrips\BallPhysics.cs" />
     <Compile Include="Assets\Scrips\CalcUtils.cs" />
+    <Compile Include="Assets\Scrips\GoalBullseyes.cs" />
+    <Compile Include="Assets\Scrips\BullsEyeCollision.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
