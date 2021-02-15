@@ -5,9 +5,10 @@ using UnityEngine;
 public class ArrowDirection : MonoBehaviour
 {
     private float m_fRotationSpeed = 0.05f;
-    private float m_fRotationLimit = 0.0f;
-    private float m_fKickingStrength = 1.0f;
+    //private float m_fRotationLimit = 0.0f;
+    //private float m_fKickingStrength = 1.0f;
     private float m_fDistanceToTarget = 0.0f;
+    public float m_fTimer = 0.0f;
 
     private bool m_bTurnLeft = false;
     private bool m_bTurnRight = false;
@@ -15,16 +16,23 @@ public class ArrowDirection : MonoBehaviour
     private bool m_bMoveBackwards = false;
     private bool m_bRotateUp = false;
     private bool m_bRotateDown = false;
-    private bool m_bChargeKickStrength = false;
+    //private bool m_bChargeKickStrength = false;
     private bool m_bBallKicked = false;
+    private bool m_bGenerateRandomBullseye = false;
 
-    private bool m_bDebugDirection = false;
+    static public int m_iBullseyesRemaining = 0;
+
+    static public bool m_bStartGame = false;
+    
+    
 
     private Vector3 m_vDirection = Vector3.zero;
     private Vector3 m_vStartingPosition = Vector3.zero;
     [SerializeField]
     private Vector3 m_vInitialVelocity = Vector3.zero;
     private Quaternion m_qStartRotation = Quaternion.identity;
+
+    private Quaternion m_TargetStartingRotation;
 
     private Vector3 m_vPosition = Vector3.zero;
 
@@ -33,6 +41,9 @@ public class ArrowDirection : MonoBehaviour
 
     private GameObject m_soccerBall = null;
     private GameObject m_LandingPosition = null;
+    private GameObject m_bullseye = null;
+    private GoalBullseyes m_BullseyePool = null;
+    private CountdownTimer m_TimerObject = null;
 
     // Start is called before the first frame update
     void Start()
@@ -44,7 +55,7 @@ public class ArrowDirection : MonoBehaviour
         {
             Debug.LogError("Can't find soccer ball");
         }
-
+        m_iBullseyesRemaining = 10;
 
         m_qStartRotation = transform.rotation;
         m_vStartingPosition = transform.position;
@@ -53,6 +64,11 @@ public class ArrowDirection : MonoBehaviour
         m_vPosition = m_vInitialVelocity;
         m_LandingPosition.transform.position = m_vInitialVelocity;
 
+        m_BullseyePool = this.GetComponent<GoalBullseyes>();
+
+        m_TimerObject = GameObject.Find("Canvas").GetComponent<CountdownTimer>();
+
+        m_TargetStartingRotation = m_LandingPosition.transform.rotation;
     }
 
     // Update is called once per frame
@@ -62,11 +78,18 @@ public class ArrowDirection : MonoBehaviour
         Move();
         //UpdateTargetPosition();
         RotateCamera();
+        CreateRandomBullseye();
+
         m_LandingPosition.transform.position = m_vInitialVelocity;
 
         Vector3 m_vFinalRange = new Vector3(m_LandingPosition.transform.position.x, transform.position.y, m_LandingPosition.transform.position.z);
 
         m_fDistanceToTarget = Vector3.Distance(transform.position, m_vFinalRange);
+
+        if (m_iBullseyesRemaining <= 5)
+        {
+            m_bGenerateRandomBullseye = true;
+        }
 
     }
     private void HandleEvents()
@@ -98,7 +121,7 @@ public class ArrowDirection : MonoBehaviour
         }
         if(Input.GetKeyDown(KeyCode.Space))
         {
-            m_bChargeKickStrength = true;
+            //m_bChargeKickStrength = true;
         }
 
         //Keyup
@@ -141,12 +164,36 @@ public class ArrowDirection : MonoBehaviour
         }
         if (Input.GetKeyUp(KeyCode.Q))
         {
-            Debug.LogError("R Pressed");
+
             ResetSceneObjects();
 
         }   
 
     }
+    public void StartGame()
+    {
+        if (!m_bStartGame)
+        {
+            GoalBullseyes.m_bResetBullseyePosition = true;
+        }
+        ResetSceneObjects();
+        m_iBullseyesRemaining = 10;
+        m_bStartGame = true;
+        m_TimerObject.m_bStartTimer = true;
+    }
+
+    public void ResetScene()
+    {
+        m_bStartGame = false;
+        m_BullseyePool.ResetBullseyePositionto0();
+        ResetSceneObjects();
+        m_iBullseyesRemaining = 10;
+        m_TimerObject.m_fCurrentTime = 60.0f;
+        m_TimerObject.m_Victory.text = "";
+        m_TimerObject.m_CountdownText.text = m_TimerObject.m_fCurrentTime.ToString("0");
+        m_bGenerateRandomBullseye = false;
+    }
+
     private void OnKick()
     {
   
@@ -193,10 +240,12 @@ public class ArrowDirection : MonoBehaviour
         if (dotP > 0)
         {
             transform.Rotate(0.0f, angle, 0.0f);
+            m_LandingPosition.transform.Rotate(angle, 0, 0.0f);
         }
         else
         {
             transform.Rotate(0.0f, -angle, 0.0f);
+            m_LandingPosition.transform.Rotate(-angle, 0, 0.0f);
         }
     }
     private void CreateLandingDisplay()
@@ -293,6 +342,8 @@ public class ArrowDirection : MonoBehaviour
         m_vPosition = m_vInitialVelocity;
         m_LandingPosition.transform.position = m_vInitialVelocity;
 
+        m_LandingPosition.transform.rotation = m_TargetStartingRotation;
+
         ResetSceneVariables();
 
     }
@@ -303,10 +354,29 @@ public class ArrowDirection : MonoBehaviour
         m_bTurnRight = false;
         m_bRotateUp = false;
         m_bRotateDown = false;
-        m_bChargeKickStrength = false;
+        //m_bChargeKickStrength = false;
         m_bBallKicked = false;
 
-        m_fRotationLimit = 0.0f;
+
+        //m_fRotationLimit = 0.0f;
+    }
+
+    private void CreateRandomBullseye()
+    {
+ 
+        if (m_bGenerateRandomBullseye && m_iBullseyesRemaining > 0)
+        {
+            m_bullseye = this.GetComponent<GoalBullseyes>().bullsEyes[0];
+
+            if (m_fTimer <= 0.0f)
+            {
+                Vector3 position = new Vector3(85.0f, Random.Range(39.0f, 49.0f), Random.Range(-2.3f, 12.5f));
+                m_bullseye.transform.position = position;
+                m_fTimer = 10.0f;
+            }
+
+            m_fTimer -= 1 * Time.deltaTime;
+        }
     }
     
     private void OnDrawGizmos()

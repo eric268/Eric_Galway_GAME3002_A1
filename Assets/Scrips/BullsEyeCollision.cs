@@ -5,10 +5,13 @@ using UnityEngine;
 public class BullsEyeCollision : MonoBehaviour
 {
     private GameObject soccerBall;
+    private GameObject kickLocation;
     // Start is called before the first frame update
     void Start()
     {
         soccerBall = GameObject.Find("Soccer Ball");
+        kickLocation = GameObject.Find("KickLocation");
+
     }
 
     // Update is called once per frame
@@ -18,11 +21,14 @@ public class BullsEyeCollision : MonoBehaviour
     }
     private void OnCollisionEnter(Collision collision)
     {
-        Debug.Log("Hit");
         if (collision.gameObject.name == "Soccer Ball" && soccerBall.GetComponent<BallPhysics>().m_bCanHitBullseye)
         {
-            transform.position = new Vector3(0.0f, 0.0f, 0.0f);
+            ArrowDirection.m_iBullseyesRemaining -= 1;
+            transform.parent.gameObject.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
+            Debug.Log("Hit");
             soccerBall.GetComponent<BallPhysics>().m_bCanHitBullseye = false;
+
+            kickLocation.GetComponent<ArrowDirection>().m_fTimer = 1.0f;
         }
     }
 }

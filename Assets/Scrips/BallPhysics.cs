@@ -8,7 +8,7 @@ public class BallPhysics : MonoBehaviour
 
     private Vector3 m_vPreviousVelocity = Vector3.zero;
     public Rigidbody m_rb = null;
-    private float m_fSpeed = 0.0f;
+    //private float m_fSpeed = 0.0f;
     public bool m_bCanHitBullseye = true;
 
     // Start is called before the first frame update
