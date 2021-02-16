@@ -324,11 +324,11 @@ public class ArrowDirection : MonoBehaviour
             }
             if (m_bMoveForward)
             {
-                MoveTargetForward(m_fRotationSpeed);
+                MoveTargetForward(m_fRotationSpeed * 1.1f);
             }
             if (m_bMoveBackwards)
             {
-                MoveTargetBackwards(m_fRotationSpeed);
+                MoveTargetBackwards(m_fRotationSpeed * 1.1f);
             }
             if (m_bRotateUp)
             {
@@ -384,7 +384,7 @@ public class ArrowDirection : MonoBehaviour
 
             if (m_fTimer <= 0.0f)
             {
-                Vector3 position = new Vector3(85.0f, Random.Range(39.0f, 49.0f), Random.Range(-2.3f, 12.5f));
+                Vector3 position = new Vector3(85.0f, Random.Range(39.0f, 49.0f), Random.Range(-14.0f, 12.5f));
                 //When a bullseye is hit it is not destroyed it is moved to (0, 0, 0) so that I do not have to constantly create and destory bullseye objects
                 m_bullseye.transform.position = position;
                 //A timer starts when a random bullseye is created and the player has 6.0 seconds to hit it or it moves
