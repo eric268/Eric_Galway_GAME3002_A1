@@ -57,12 +57,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scrips\BullsEyeCollision.cs" />
+    <Compile Include="Assets\Scrips\CountdownTimer.cs" />
     <Compile Include="Assets\Scrips\ArrowDirection.cs" />
+    <Compile Include="Assets\Scrips\GameVariables.cs" />
     <Compile Include="Assets\Scrips\GoalBullseyes.cs" />
     <Compile Include="Assets\Scrips\BallPhysics.cs" />
-    <Compile Include="Assets\Scrips\CalcUtils.cs" />
-    <Compile Include="Assets\Scrips\CountdownTimer.cs" />
-    <Compile Include="Assets\Scrips\GameVariables.cs" />
   </ItemGroup>
   <ItemGroup>
      <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

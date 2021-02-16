@@ -13,17 +13,13 @@ public class GoalBullseyes : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        //Creates a pool of bullseye objects and stores them in an array
         for (int i = 0; i < m_iNumberBullseyes; i++)
         {
             bullsEyes[i] = Instantiate(prefab) as GameObject;
 
             bullsEyes[i].name = "Bullseye" + i;
         }
-        //bullsEyes[0].transform.position = new Vector3(85.0f, 48.0f, 12.0f);
-        //bullsEyes[1].transform.position = new Vector3(85.0f, 39.0f, 12.0f);
-        //bullsEyes[2].transform.position = new Vector3(85.0f, 42.5f, 0.0f);
-        //bullsEyes[3].transform.position = new Vector3(85.0f, 48.0f, -12.0f);
-        //bullsEyes[4].transform.position = new Vector3(85.0f, 39.0f, -12.0f);
     }
 
 
@@ -32,6 +28,7 @@ public class GoalBullseyes : MonoBehaviour
     {
         if (m_bResetBullseyePosition)
         {
+            //This moves the bullseyes from their starting positon of (0,0,0) to positons in foal
             m_bResetBullseyePosition = false;
             bullsEyes[0].transform.position = new Vector3(85.0f, 48.0f, 12.0f);
             bullsEyes[1].transform.position = new Vector3(85.0f, 39.0f, 12.0f);
